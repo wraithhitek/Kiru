@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, Copy } from "lucide-react";
 import { KiruLogo } from "../components/KiruLogo";
 
 export default function ForgotPassword() {
@@ -9,6 +9,7 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [tempPassword, setTempPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +43,7 @@ export default function ForgotPassword() {
         return;
       }
       
+      setTempPassword(data.tempPassword || "");
       setIsSuccess(true);
     } catch (error) {
       console.error('Forgot password error:', error);
@@ -78,10 +80,31 @@ export default function ForgotPassword() {
               <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
             <h2 className="text-2xl font-bold mb-3" style={{ fontFamily: 'var(--font-serif)' }}>
-              Check Your Email
+              Password Reset
             </h2>
-            <p className="text-muted-foreground mb-6">
-              We've sent password reset instructions to <span className="text-foreground font-medium">{email}</span>
+            <p className="text-muted-foreground mb-4">
+              Your temporary password for <span className="text-foreground font-medium">{email}</span>
+            </p>
+            
+            {tempPassword && (
+              <div className="bg-input-background border border-border rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between gap-3">
+                  <code className="text-lg font-mono text-blue-400">{tempPassword}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(tempPassword);
+                    }}
+                    className="p-2 hover:bg-background rounded-lg transition-colors"
+                    title="Copy password"
+                  >
+                    <Copy className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <p className="text-sm text-muted-foreground mb-6">
+              Use this temporary password to sign in, then change it in your account settings.
             </p>
             <Link
               to="/signin"
