@@ -1,6 +1,6 @@
 import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Trash2, Save } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 
@@ -68,6 +68,49 @@ export default function AskAITutor() {
     }
   };
   
+  const handleClearConversation = () => {
+    if (confirm('Are you sure you want to clear this conversation?')) {
+      setMessages([
+        { role: 'assistant', content: 'Hello! I\'m your AI tutor. I\'m here to help you understand concepts using the Socratic method. What would you like to learn about today?' }
+      ]);
+    }
+  };
+
+  const handleSaveConversation = async () => {
+    const userStr = localStorage.getItem('kiruUser');
+    if (!userStr) {
+      alert('Please sign in to save conversations');
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/save-conversation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          messages: messages,
+          topic: 'AI Tutor Session'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Conversation saved successfully!');
+      } else {
+        alert('Failed to save conversation');
+      }
+    } catch (error) {
+      console.error('Error saving conversation:', error);
+      alert('Failed to save conversation');
+    }
+  };
+  
   return (
     <FeatureLayout
       title="Ask AI Tutor"
@@ -84,6 +127,27 @@ export default function AskAITutor() {
           className="bg-card rounded-2xl border border-border p-6 flex flex-col"
           style={{ height: '600px' }}
         >
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
+            <h3 className="text-lg font-semibold">Conversation</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveConversation}
+                className="p-2 rounded-lg bg-secondary border border-border hover:bg-secondary/80 transition-colors"
+                title="Save conversation"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleClearConversation}
+                className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+                title="Clear conversation"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto mb-4 space-y-4">
             {messages.map((msg, idx) => (
               <motion.div

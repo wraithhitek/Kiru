@@ -1,5 +1,6 @@
 import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
+import { CodeEditor } from "../components/CodeEditor";
 import { Code2, Sparkles, FileCode, Upload } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -179,12 +180,11 @@ print(fibonacci(10))`;
               Paste Your Code
             </h3>
             
-            <textarea
+            <CodeEditor
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={setCode}
               placeholder="Paste your code snippet here..."
-              className="w-full h-[400px] p-4 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-mono text-sm resize-none"
-              style={{ fontFamily: 'monospace' }}
+              allowFileUpload={true}
             />
             
             <div className="flex gap-2 mt-4">
