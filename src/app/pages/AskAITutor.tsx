@@ -1,4 +1,5 @@
 import { FeatureLayout } from "../components/FeatureLayout";
+import { FormattedText } from "../components/FormattedText";
 import { MessageCircle, Send } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -100,7 +101,11 @@ export default function AskAITutor() {
                   }`}
                   style={{ fontFamily: 'var(--font-sans)' }}
                 >
-                  {msg.content}
+                  {msg.role === 'user' ? (
+                    msg.content
+                  ) : (
+                    <FormattedText content={msg.content} />
+                  )}
                 </div>
               </motion.div>
             ))}

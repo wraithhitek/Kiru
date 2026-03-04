@@ -1,4 +1,5 @@
 import { FeatureLayout } from "../components/FeatureLayout";
+import { FormattedText } from "../components/FormattedText";
 import { FolderPlus, Sparkles, Folder, FileCode } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";

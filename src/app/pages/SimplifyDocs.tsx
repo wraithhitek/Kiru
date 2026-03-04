@@ -1,4 +1,5 @@
 import { FeatureLayout } from "../components/FeatureLayout";
+import { FormattedText } from "../components/FormattedText";
 import { FileText, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -144,8 +145,8 @@ export default function SimplifyDocs() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="whitespace-pre-wrap text-foreground leading-relaxed" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {simplified}
+                <div className="text-foreground leading-relaxed" style={{ fontFamily: 'var(--font-sans)' }}>
+                  <FormattedText content={simplified} />
                 </div>
               </motion.div>
             ) : (

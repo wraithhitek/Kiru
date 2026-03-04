@@ -1,4 +1,5 @@
 import { FeatureLayout } from "../components/FeatureLayout";
+import { FormattedText } from "../components/FormattedText";
 import { Code2, Sparkles, FileCode, Upload } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -235,8 +236,8 @@ print(fibonacci(10))`;
               style={{ fontFamily: 'var(--font-sans)' }}
             >
               {explanation ? (
-                <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-                  {explanation}
+                <div className="text-foreground leading-relaxed">
+                  <FormattedText content={explanation} />
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">

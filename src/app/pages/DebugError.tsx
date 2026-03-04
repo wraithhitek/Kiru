@@ -1,4 +1,5 @@
 import { FeatureLayout } from "../components/FeatureLayout";
+import { FormattedText } from "../components/FormattedText";
 import { Bug, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -194,8 +195,8 @@ print(value)`;
             animate={{ opacity: 1, y: 0 }}
             className="bg-card rounded-2xl border border-border p-6"
           >
-            <div className="whitespace-pre-wrap text-foreground leading-relaxed" style={{ fontFamily: 'var(--font-sans)' }}>
-              {solution.raw || solution.issue}
+            <div className="text-foreground leading-relaxed" style={{ fontFamily: 'var(--font-sans)' }}>
+              <FormattedText content={solution.raw || solution.issue} />
             </div>
           </motion.div>
         )}
