@@ -183,9 +183,9 @@ export default function SignIn() {
 
             {/* Forgot Password */}
             <div className="text-right">
-              <button type="button" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+              <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
             {/* Submit Button */}

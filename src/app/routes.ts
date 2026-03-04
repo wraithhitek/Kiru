@@ -3,6 +3,7 @@ import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
 import AskAITutor from "./pages/AskAITutor";
 import ExplainCode from "./pages/ExplainCode";
 import DebugError from "./pages/DebugError";
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
   {
     path: "/signup",
     Component: SignUp,
+  },
+  {
+    path: "/forgot-password",
+    Component: ForgotPassword,
   },
   {
     path: "/dashboard",
