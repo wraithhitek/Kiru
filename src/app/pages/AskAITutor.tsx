@@ -77,34 +77,20 @@ export default function AskAITutor() {
   };
 
   const handleSaveConversation = async () => {
-    const userStr = localStorage.getItem('kiruUser');
-    if (!userStr) {
-      alert('Please sign in to save conversations');
-      return;
-    }
-
-    const user = JSON.parse(userStr);
-    
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/save-conversation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          messages: messages,
-          topic: 'AI Tutor Session'
-        })
-      });
-
-      const data = await response.json();
+      // Save to localStorage for now
+      const timestamp = new Date().toISOString();
+      const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
       
-      if (response.ok) {
-        alert('Conversation saved successfully!');
-      } else {
-        alert('Failed to save conversation');
-      }
+      savedConversations.push({
+        id: Date.now(),
+        messages: messages,
+        topic: 'AI Tutor Session',
+        timestamp: timestamp
+      });
+      
+      localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+      alert('Conversation saved locally!');
     } catch (error) {
       console.error('Error saving conversation:', error);
       alert('Failed to save conversation');
