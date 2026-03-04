@@ -16,48 +16,49 @@ export default function ProjectGenerator() {
     { id: 'data', name: 'Data Analysis', icon: '📊' }
   ];
   
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!projectType || !description) return;
     
     setIsGenerating(true);
-    setTimeout(() => {
-      setProject({
-        name: 'Python Flask Blog',
-        structure: [
-          {
-            type: 'folder',
-            name: 'app',
-            children: [
-              { type: 'file', name: '__init__.py', description: 'Flask app initialization' },
-              { type: 'file', name: 'routes.py', description: 'URL route handlers' },
-              { type: 'file', name: 'models.py', description: 'Database models' },
-              {
-                type: 'folder',
-                name: 'templates',
-                children: [
-                  { type: 'file', name: 'base.html', description: 'Base template' },
-                  { type: 'file', name: 'index.html', description: 'Home page' },
-                  { type: 'file', name: 'post.html', description: 'Blog post page' }
-                ]
-              }
-            ]
-          },
-          { type: 'file', name: 'config.py', description: 'Configuration settings' },
-          { type: 'file', name: 'requirements.txt', description: 'Python dependencies' },
-          { type: 'file', name: 'run.py', description: 'Application entry point' }
-        ],
-        nextSteps: [
-          'Install dependencies: pip install -r requirements.txt',
-          'Set up database: python init_db.py',
-          'Run the application: python run.py',
-          'Access at http://localhost:5000'
-        ]
+    try {
+      console.log('Sending project generation request:', { projectType, description });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/project-generator`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectType, description }),
       });
+      
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.project) {
+        setProject(data.project);
+      } else {
+        console.error('Invalid response format:', data);
+        setProject({
+          name: 'Error',
+          structure: [],
+          nextSteps: [data.error || 'Failed to generate project. Please try again.']
+        });
+      }
+    } catch (error) {
+      console.error('Error generating project:', error);
+      setProject({
+        name: 'Error',
+        structure: [],
+        nextSteps: ['Failed to generate project. Please try again.']
+      });
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
   
   const renderStructure = (items: any[], level = 0) => {
+    if (!items || !Array.isArray(items)) return null;
+    
     return items.map((item, idx) => (
       <motion.div
         key={idx}
@@ -199,7 +200,11 @@ export default function ProjectGenerator() {
                   Project Structure
                 </h4>
                 <div className="bg-secondary rounded-xl p-4">
-                  {renderStructure(project.structure)}
+                  {project.structure && Array.isArray(project.structure) && project.structure.length > 0 ? (
+                    renderStructure(project.structure)
+                  ) : (
+                    <div className="text-muted-foreground text-sm">No structure available</div>
+                  )}
                 </div>
               </div>
               
@@ -211,7 +216,7 @@ export default function ProjectGenerator() {
                   Next Steps
                 </h4>
                 <ol className="space-y-2">
-                  {project.nextSteps.map((step: string, idx: number) => (
+                  {project.nextSteps && Array.isArray(project.nextSteps) && project.nextSteps.map((step: string, idx: number) => (
                     <motion.li
                       key={idx}
                       initial={{ opacity: 0, x: -10 }}

@@ -12,6 +12,8 @@ export default function UserDashboard() {
     streak: 0,
     avatar: "U"
   });
+  const [progressData, setProgressData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -31,8 +33,34 @@ export default function UserDashboard() {
         streak: parsedUser.streak || 0,
         avatar: parsedUser.name.charAt(0).toUpperCase()
       });
+      
+      // Fetch progress data
+      fetchProgressData(parsedUser.id);
     }
   }, [navigate]);
+
+  const fetchProgressData = async (userId: string) => {
+    try {
+      console.log('Fetching progress for user ID:', userId);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/progress/get`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+      
+      console.log('Progress API response status:', response.status);
+      const data = await response.json();
+      console.log('Progress API response data:', data);
+      
+      setProgressData(data);
+    } catch (error) {
+      console.error('Error fetching progress data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const dailyGoal = {
     title: "Learn Python Functions",
@@ -83,11 +111,26 @@ export default function UserDashboard() {
     }
   ];
 
-  const recentActivity = [
-    { title: "Completed: Variables & Data Types", time: "2 hours ago", type: "completed" },
-    { title: "Started: Control Flow Basics", time: "1 day ago", type: "started" },
-    { title: "Quiz Score: 85% on Python Basics", time: "2 days ago", type: "quiz" }
+  const recentActivity = progressData?.recentActivity || [
+    { type: "quiz_completed", data: { topic: "Getting Started", percentage: 0 }, date: new Date().toISOString() }
   ];
+
+  const stats = progressData?.stats || {
+    totalCodeSnippets: 0,
+    totalQuizzes: 0,
+    averageQuizScore: 0
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
@@ -160,6 +203,27 @@ export default function UserDashboard() {
                   </motion.div>
                   <span className="text-lg font-semibold">{user.streak} Day Streak</span>
                 </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Stats Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="grid grid-cols-3 gap-4 mb-6"
+            >
+              <div className="bg-card rounded-xl border border-border p-4 text-center">
+                <div className="text-2xl font-bold text-blue-500">{stats.totalQuizzes}</div>
+                <div className="text-sm text-muted-foreground">Quizzes Completed</div>
+              </div>
+              <div className="bg-card rounded-xl border border-border p-4 text-center">
+                <div className="text-2xl font-bold text-orange-500">{stats.averageQuizScore}%</div>
+                <div className="text-sm text-muted-foreground">Average Score</div>
+              </div>
+              <div className="bg-card rounded-xl border border-border p-4 text-center">
+                <div className="text-2xl font-bold text-purple-500">{stats.totalCodeSnippets}</div>
+                <div className="text-sm text-muted-foreground">Code Snippets</div>
               </div>
             </motion.div>
 
@@ -240,25 +304,60 @@ export default function UserDashboard() {
               </div>
               
               <div className="space-y-3">
-                {recentActivity.map((activity, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
-                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors"
-                  >
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.type === 'completed' ? 'bg-emerald-500' :
-                      activity.type === 'started' ? 'bg-blue-500' :
-                      'bg-purple-500'
-                    }`} />
-                    <div className="flex-1">
-                      <p className="text-foreground font-medium">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                {recentActivity.slice(0, 5).map((activity, index) => {
+                  const getActivityTitle = (activity: any) => {
+                    switch (activity.type) {
+                      case 'quiz_completed':
+                        return `Quiz: ${activity.data.topic} - ${activity.data.percentage}%`;
+                      case 'code_explainer_used':
+                        return `Explained ${activity.data.language} code`;
+                      case 'debug_error_used':
+                        return `Debugged ${activity.data.language} error`;
+                      default:
+                        return 'Learning activity';
+                    }
+                  };
+
+                  const getActivityTime = (dateString: string) => {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffMs = now.getTime() - date.getTime();
+                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffDays = Math.floor(diffHours / 24);
+                    
+                    if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                    if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                    return 'Just now';
+                  };
+
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1, duration: 0.4 }}
+                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                        activity.type === 'quiz_completed' ? 'bg-emerald-500' :
+                        activity.type.includes('code_explainer') ? 'bg-blue-500' :
+                        activity.type.includes('debug_error') ? 'bg-red-500' :
+                        'bg-purple-500'
+                      }`} />
+                      <div className="flex-1">
+                        <p className="text-foreground font-medium">{getActivityTitle(activity)}</p>
+                        <p className="text-sm text-muted-foreground">{getActivityTime(activity.date)}</p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+                
+                {recentActivity.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No recent activity yet.</p>
+                    <p className="text-sm">Start using the features to see your progress!</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

@@ -12,8 +12,10 @@ export default function SignIn() {
     password: ""
   });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Simple validation
@@ -36,20 +38,51 @@ export default function SignIn() {
       return;
     }
     
-    // Store user data in localStorage (simple demo)
-    const userData = {
-      email: formData.email,
-      name: formData.email.split('@')[0],
-      level: "Beginner Pythonista",
-      streak: 0,
-      joinedDate: new Date().toISOString()
-    };
+    // Call signin API
+    setIsLoading(true);
+    setApiError('');
     
-    localStorage.setItem('kiruUser', JSON.stringify(userData));
-    localStorage.setItem('isAuthenticated', 'true');
-    
-    // Navigate to user dashboard
-    navigate('/dashboard');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setApiError(data.error || 'Failed to sign in');
+        return;
+      }
+      
+      // Store user data and token
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        level: "Beginner Pythonista",
+        streak: 0,
+        joinedDate: new Date().toISOString()
+      };
+      
+      localStorage.setItem('kiruUser', JSON.stringify(userData));
+      localStorage.setItem('kiruToken', data.token);
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      // Navigate to user dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Signin error:', error);
+      setApiError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,6 +125,13 @@ export default function SignIn() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* API Error */}
+            {apiError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {apiError}
+              </div>
+            )}
+            
             {/* Email Field */}
             <div>
               <label className="block text-sm font-medium mb-2">Email</label>
@@ -151,9 +191,10 @@ export default function SignIn() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-orange-500 text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-orange-500 text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 

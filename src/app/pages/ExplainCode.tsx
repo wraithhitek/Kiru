@@ -30,21 +30,77 @@ print(fibonacci(10))`;
     'api_routes.py'
   ];
   
-  const handleExplain = () => {
+  const handleExplain = async () => {
     if (!code.trim()) return;
     
     setIsExplaining(true);
-    setTimeout(() => {
-      setExplanation(`This code implements the Fibonacci sequence using recursion:
-
-🔹 The function 'fibonacci(n)' calculates the nth Fibonacci number
-🔹 Base case: If n ≤ 1, it returns n directly
-🔹 Recursive case: Returns sum of previous two Fibonacci numbers
-🔹 The print statement displays the 10th Fibonacci number (55)
-
-⚡ Note: This recursive approach is elegant but not efficient for large numbers. Consider using dynamic programming for better performance!`);
+    
+    try {
+      console.log('API URL:', import.meta.env.VITE_API_URL);
+      console.log('Calling API...');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/explain-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          userId: null
+        })
+      });
+      
+      console.log('Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.error) {
+        setExplanation('Error: ' + data.error);
+      } else {
+        setExplanation(data.explanation);
+        
+        // Save code snippet to database
+        await saveCodeSnippet(code, data.explanation, 'code_explainer');
+      }
+    } catch (error) {
+      console.error('Detailed error:', error);
+      setExplanation('Failed to explain code. Check console for details.');
+    } finally {
       setIsExplaining(false);
-    }, 1500);
+    }
+  };
+
+  const saveCodeSnippet = async (codeText: string, explanationText: string, feature: string) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('kiruUser') || '{}');
+      if (!user.id) return;
+
+      // Detect language from code (simple detection)
+      let language = 'text';
+      if (codeText.includes('def ') || codeText.includes('import ')) language = 'python';
+      else if (codeText.includes('function ') || codeText.includes('const ')) language = 'javascript';
+      else if (codeText.includes('public class') || codeText.includes('System.out')) language = 'java';
+      else if (codeText.includes('#include') || codeText.includes('int main')) language = 'c++';
+
+      await fetch(`${import.meta.env.VITE_API_URL}/api/progress/snippet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          code: codeText,
+          explanation: explanationText,
+          language,
+          feature
+        }),
+      });
+
+      console.log('Code snippet saved successfully');
+    } catch (error) {
+      console.error('Error saving code snippet:', error);
+    }
   };
 
   const handleAnalyze = () => {

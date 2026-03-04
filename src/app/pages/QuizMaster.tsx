@@ -18,6 +18,9 @@ export default function QuizMaster() {
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [quizStartTime, setQuizStartTime] = useState<number>(0);
   
   const topics = [
     { id: 'python-basics', name: 'Python Basics', icon: '🐍' },
@@ -28,39 +31,57 @@ export default function QuizMaster() {
   
   const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
   
-  const questions: Question[] = [
-    {
-      question: "What is the output of: print(type([]))?",
-      options: ["<class 'tuple'>", "<class 'list'>", "<class 'dict'>", "<class 'set'>"],
-      correct: 1,
-      explanation: "The square brackets [] create a list in Python. The type() function returns <class 'list'>."
-    },
-    {
-      question: "Which of the following is mutable in Python?",
-      options: ["tuple", "string", "list", "integer"],
-      correct: 2,
-      explanation: "Lists are mutable, meaning their contents can be changed after creation. Tuples, strings, and integers are immutable."
-    },
-    {
-      question: "What does the 'enumerate()' function do?",
-      options: [
-        "Counts items in a list",
-        "Returns index and value pairs",
-        "Sorts a list",
-        "Reverses a list"
-      ],
-      correct: 1,
-      explanation: "enumerate() returns an iterator of tuples containing indices and their corresponding values from the iterable."
-    }
-  ];
-  
-  const handleStartQuiz = () => {
+  const handleStartQuiz = async () => {
     if (!topic || !difficulty) return;
-    setQuizStarted(true);
-    setCurrentQuestion(0);
-    setScore(0);
-    setSelectedAnswer(null);
-    setShowExplanation(false);
+    
+    setIsLoading(true);
+    try {
+      // Map topic IDs to readable names
+      const topicNames = {
+        'python-basics': 'Python Basics',
+        'web-dev': 'Web Development',
+        'algorithms': 'Algorithms',
+        'databases': 'Databases'
+      };
+      
+      const topicName = topicNames[topic as keyof typeof topicNames] || topic;
+      
+      console.log('Sending quiz request:', { topic: topicName, difficulty });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/quiz-master`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: 'generate-quiz',
+          topic: topicName, 
+          difficulty: difficulty 
+        }),
+      });
+      
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.questions && data.questions.length > 0) {
+        setQuestions(data.questions);
+        setQuizStarted(true);
+        setCurrentQuestion(0);
+        setScore(0);
+        setSelectedAnswer(null);
+        setShowExplanation(false);
+        setQuizStartTime(Date.now()); // Track start time
+      } else {
+        console.error('Invalid response format:', data);
+        alert(`Failed to generate quiz. ${data.error || 'Please try again.'}`);
+      }
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to generate quiz. Error: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleAnswer = (index: number) => {
@@ -71,12 +92,49 @@ export default function QuizMaster() {
     }
   };
   
-  const handleNext = () => {
+  const saveQuizScore = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('kiruUser') || '{}');
+      if (!user.id) return;
+
+      const timeSpent = Math.round((Date.now() - quizStartTime) / 1000); // in seconds
+      const topicNames = {
+        'python-basics': 'Python Basics',
+        'web-dev': 'Web Development',
+        'algorithms': 'Algorithms',
+        'databases': 'Databases'
+      };
+      const topicName = topicNames[topic as keyof typeof topicNames] || topic;
+
+      await fetch(`${import.meta.env.VITE_API_URL}/api/progress/quiz`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          topic: topicName,
+          difficulty,
+          score,
+          totalQuestions: questions.length,
+          timeSpent
+        }),
+      });
+
+      console.log('Quiz score saved successfully');
+    } catch (error) {
+      console.error('Error saving quiz score:', error);
+    }
+  };
+
+  const handleNext = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
       setShowExplanation(false);
     } else {
+      // Quiz completed - save score
+      await saveQuizScore();
       setQuizStarted(false);
     }
   };
@@ -160,12 +218,12 @@ export default function QuizMaster() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleStartQuiz}
-              disabled={!topic || !difficulty}
+              disabled={!topic || !difficulty || isLoading}
               className="w-full px-8 py-4 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 text-lg"
               style={{ fontFamily: 'var(--font-sans)', fontWeight: 600 }}
             >
               <Award className="w-6 h-6" />
-              Start Quiz
+              {isLoading ? 'Generating Quiz...' : 'Start Quiz'}
             </motion.button>
           </motion.div>
         </div>

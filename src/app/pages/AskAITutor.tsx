@@ -8,6 +8,7 @@ export default function AskAITutor() {
     { role: 'assistant', content: 'Hello! I\'m your AI tutor. I\'m here to help you understand concepts using the Socratic method. What would you like to learn about today?' }
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const exampleQuestions = [
     "What is a function in Python?",
@@ -16,25 +17,54 @@ export default function AskAITutor() {
     "What is object-oriented programming?"
   ];
   
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
     
-    setMessages(prev => [...prev, { role: 'user', content: input }]);
+    const userMessage = input;
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setInput('');
+    setIsLoading(true);
     
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "Great question! Instead of just telling you the answer, let me guide you. What do you think a function does in a program?",
-        "Interesting! Before we dive deep, can you tell me what you already know about this topic?",
-        "Let's explore this together. What patterns have you noticed in code you've seen?",
-        "That's a fundamental concept! What specific part would you like to understand better?"
-      ];
+    try {
+      // Get conversation history (last 10 messages)
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai-tutor`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: userMessage,
+          conversationHistory: conversationHistory
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: 'Sorry, I encountered an error. Please try again.' 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.answer 
+        }]);
+      }
+    } catch (error) {
+      console.error('Error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: responses[Math.floor(Math.random() * responses.length)]
+        content: 'Sorry, I encountered an error. Please try again.' 
       }]);
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -90,9 +120,14 @@ export default function AskAITutor() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleSend}
-              className="px-6 py-3 rounded-xl bg-gradient-to-br from-blue-500 to-orange-500 text-white shadow-lg"
+              disabled={isLoading}
+              className="px-6 py-3 rounded-xl bg-gradient-to-br from-blue-500 to-orange-500 text-white shadow-lg disabled:opacity-50"
             >
-              <Send className="w-5 h-5" />
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
             </motion.button>
           </div>
         </motion.div>

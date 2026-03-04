@@ -15,21 +15,80 @@ result = numbers[2]
 value = result[0]  # Error here
 print(value)`;
   
-  const handleDebug = () => {
-    if (!errorMessage.trim() && !code.trim()) return;
+  const handleDebug = async () => {
+    if (!errorMessage.trim()) return;
     
     setIsDebugging(true);
-    setTimeout(() => {
-      setSolution({
-        issue: "You're trying to use index notation on an integer",
-        explanation: "The variable 'result' contains a single integer (3), not a list. You cannot use bracket notation [0] on integers.",
-        fix: "Remove the [0] from result, or ensure result is a list/array",
-        correctedCode: `numbers = [1, 2, 3, 4, 5]
-result = numbers[2]  # This is just the number 3
-print(result)  # Simply print the value`
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/debug-error`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          errorMessage: errorMessage,
+          code: code || null
+        })
       });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        setSolution({ issue: 'Error', explanation: data.error, fix: '', correctedCode: '' });
+      } else {
+        // Parse the AI response into structured format
+        setSolution({ 
+          raw: data.solution,
+          issue: data.solution,
+          explanation: '',
+          fix: '',
+          correctedCode: ''
+        });
+        
+        // Save code snippet to database if code was provided
+        if (code.trim()) {
+          await saveCodeSnippet(code, data.solution, 'debug_error');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setSolution({ issue: 'Failed to debug', explanation: 'Please try again.', fix: '', correctedCode: '' });
+    } finally {
       setIsDebugging(false);
-    }, 1500);
+    }
+  };
+
+  const saveCodeSnippet = async (codeText: string, solutionText: string, feature: string) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('kiruUser') || '{}');
+      if (!user.id) return;
+
+      // Detect language from code (simple detection)
+      let language = 'text';
+      if (codeText.includes('def ') || codeText.includes('import ')) language = 'python';
+      else if (codeText.includes('function ') || codeText.includes('const ')) language = 'javascript';
+      else if (codeText.includes('public class') || codeText.includes('System.out')) language = 'java';
+      else if (codeText.includes('#include') || codeText.includes('int main')) language = 'c++';
+
+      await fetch(`${import.meta.env.VITE_API_URL}/api/progress/snippet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          code: codeText,
+          explanation: solutionText,
+          language,
+          feature
+        }),
+      });
+
+      console.log('Debug code snippet saved successfully');
+    } catch (error) {
+      console.error('Error saving debug code snippet:', error);
+    }
   };
   
   return (
@@ -133,49 +192,10 @@ print(result)  # Simply print the value`
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-card rounded-2xl border border-border p-6 space-y-6"
+            className="bg-card rounded-2xl border border-border p-6"
           >
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-sans)' }}>
-                  Issue Identified
-                </h4>
-                <p className="text-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {solution.issue}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center mt-1 flex-shrink-0">
-                <span className="text-blue-400 text-sm font-bold">?</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-sans)' }}>
-                  Explanation
-                </h4>
-                <p className="text-foreground" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {solution.explanation}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-emerald-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-sans)' }}>
-                  How to Fix
-                </h4>
-                <p className="text-foreground mb-3" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {solution.fix}
-                </p>
-                <div className="p-4 bg-secondary rounded-xl">
-                  <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">
-                    {solution.correctedCode}
-                  </pre>
-                </div>
-              </div>
+            <div className="whitespace-pre-wrap text-foreground leading-relaxed" style={{ fontFamily: 'var(--font-sans)' }}>
+              {solution.raw || solution.issue}
             </div>
           </motion.div>
         )}

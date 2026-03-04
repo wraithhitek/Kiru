@@ -8,51 +8,32 @@ export default function SimplifyDocs() {
   const [simplified, setSimplified] = useState('');
   const [isSimplifying, setIsSimplifying] = useState(false);
   
-  const handleSimplify = () => {
+  const handleSimplify = async () => {
     if (!docUrl.trim()) return;
     
     setIsSimplifying(true);
-    setTimeout(() => {
-      setSimplified(`# Python List Comprehension - Simplified
-
-## What is it?
-A concise way to create lists in Python using a single line of code.
-
-## Basic Syntax
-\`\`\`python
-new_list = [expression for item in iterable if condition]
-\`\`\`
-
-## Simple Example
-Instead of:
-\`\`\`python
-squares = []
-for x in range(10):
-    squares.append(x**2)
-\`\`\`
-
-You can write:
-\`\`\`python
-squares = [x**2 for x in range(10)]
-\`\`\`
-
-## Key Points
-✅ More readable and concise
-✅ Generally faster than loops
-✅ Can include conditional filtering
-✅ Works with any iterable (lists, tuples, strings, etc.)
-
-## When to Use
-- Creating new lists from existing ones
-- Filtering data
-- Transforming data
-
-## When NOT to Use
-- Complex logic (use regular loops)
-- When readability suffers
-- Side effects needed (use regular loops)`);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/simplify-docs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ docUrl }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.simplified) {
+        setSimplified(data.simplified);
+      } else {
+        setSimplified('Failed to simplify documentation. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error simplifying docs:', error);
+      setSimplified('Failed to simplify documentation. Please try again.');
+    } finally {
       setIsSimplifying(false);
-    }, 1500);
+    }
   };
   
   return (
