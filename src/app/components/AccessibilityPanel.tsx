@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Accessibility, Mic, MicOff, X, Volume2, VolumeX, Type, Maximize2, Minimize2, Eye } from 'lucide-react';
 import { ttsManager } from '../utils/textToSpeech';
+import { SignLanguageAvatar } from './SignLanguageAvatar';
 
 interface AccessibilityPanelProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAvatar, setShowAvatar] = useState(true);
   const [textToSpeech, setTextToSpeech] = useState(false);
+  const [signLanguageEnabled, setSignLanguageEnabled] = useState(false);
+  const [currentText, setCurrentText] = useState('');
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -26,6 +29,20 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
       document.documentElement.classList.remove('high-contrast');
     }
   }, [highContrast]);
+
+  useEffect(() => {
+    // Listen for new text content to translate to sign language
+    if (!signLanguageEnabled) return;
+
+    const handleNewContent = (event: any) => {
+      if (event.detail && typeof event.detail === 'string') {
+        setCurrentText(event.detail);
+      }
+    };
+
+    window.addEventListener('newAIResponse', handleNewContent);
+    return () => window.removeEventListener('newAIResponse', handleNewContent);
+  }, [signLanguageEnabled]);
 
   useEffect(() => {
     // Check if browser supports Speech Recognition
@@ -257,28 +274,48 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h4 className="text-sm font-semibold">Sign Language Avatar</h4>
-                  <p className="text-xs text-muted-foreground">Coming soon</p>
-                </div>
-                <button
-                  onClick={() => setShowAvatar(false)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Hide
-                </button>
-              </div>
-              <div className="aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-border">
-                <div className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                    <Accessibility className="w-10 h-10 text-white" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Sign language translation
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Feature in development
+                  <p className="text-xs text-muted-foreground">
+                    {signLanguageEnabled ? 'Active' : 'Click to enable'}
                   </p>
                 </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSignLanguageEnabled(!signLanguageEnabled)}
+                    className={`p-2 rounded-lg transition-all ${
+                      signLanguageEnabled
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-secondary hover:bg-secondary/80'
+                    }`}
+                    title={signLanguageEnabled ? 'Disable sign language' : 'Enable sign language'}
+                  >
+                    <Accessibility className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setShowAvatar(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Hide
+                  </button>
+                </div>
               </div>
+              
+              <SignLanguageAvatar
+                text={currentText}
+                isEnabled={signLanguageEnabled}
+                className="h-64"
+              />
+              
+              {signLanguageEnabled && (
+                <div className="mt-3">
+                  <input
+                    type="text"
+                    value={currentText}
+                    onChange={(e) => setCurrentText(e.target.value)}
+                    placeholder="Type text to see sign language..."
+                    className="w-full px-3 py-2 rounded-lg bg-input-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
