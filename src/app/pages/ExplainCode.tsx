@@ -3,7 +3,7 @@ import { FormattedText } from "../components/FormattedText";
 import { CodeEditor } from "../components/CodeEditor";
 import { Code2, Sparkles, FileCode, Upload } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function ExplainCode() {
   const [activeTab, setActiveTab] = useState<'snippet' | 'file'>('snippet');
@@ -15,8 +15,10 @@ export default function ExplainCode() {
   
   // File analysis state
   const [selectedFile, setSelectedFile] = useState('');
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; content: string } | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const exampleCode = `def fibonacci(n):
     if n <= 1:
@@ -106,28 +108,61 @@ print(fibonacci(10))`;
   };
 
   const handleAnalyze = () => {
-    if (!selectedFile) return;
+    if (!selectedFile && !uploadedFile) return;
     
     setIsAnalyzing(true);
     setTimeout(() => {
+      const fileName = uploadedFile ? uploadedFile.name : selectedFile;
       setAnalysis({
-        overview: "This is a Flask application entry point that sets up routes and database connections.",
+        overview: `This is a ${fileName} file that contains application logic and functionality.`,
         components: [
-          { name: "Flask App Initialization", description: "Creates the Flask application instance and configures settings" },
-          { name: "Database Setup", description: "Initializes SQLAlchemy connection and creates tables if needed" },
-          { name: "Route Handlers", description: "Defines endpoints for user authentication, data retrieval, and API calls" },
-          { name: "Error Handling", description: "Custom error handlers for 404 and 500 errors" }
+          { name: "Main Logic", description: "Core functionality and business logic implementation" },
+          { name: "Helper Functions", description: "Utility functions for data processing and validation" },
+          { name: "Configuration", description: "Settings and configuration parameters" },
+          { name: "Error Handling", description: "Exception handling and error recovery mechanisms" }
         ],
-        dependencies: ['Flask', 'SQLAlchemy', 'python-dotenv', 'Flask-CORS'],
+        dependencies: uploadedFile ? ['Detected from uploaded file'] : ['Flask', 'SQLAlchemy', 'python-dotenv', 'Flask-CORS'],
         complexity: 'Medium',
         suggestions: [
-          "Consider separating routes into blueprints for better organization",
-          "Add input validation for API endpoints",
-          "Implement rate limiting for security"
+          "Consider adding more comments for better code documentation",
+          "Implement unit tests for critical functions",
+          "Review error handling for edge cases"
         ]
       });
       setIsAnalyzing(false);
     }, 1500);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 1MB)
+      if (file.size > 1024 * 1024) {
+        alert('File is too large. Maximum size is 1MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        setUploadedFile({
+          name: file.name,
+          content: content
+        });
+        setSelectedFile(''); // Clear selected file from list
+      };
+      
+      reader.onerror = () => {
+        alert('Error reading file. Please try again.');
+      };
+      
+      reader.readAsText(file);
+      
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
   
   return (
@@ -268,12 +303,33 @@ print(fibonacci(10))`;
               </h3>
               
               <div className="space-y-2 mb-4">
+                {uploadedFile && (
+                  <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-green-500/20 to-blue-500/20 border border-green-500/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileCode className="w-4 h-4 text-green-400" />
+                      <span className="text-sm font-medium text-green-400">
+                        {uploadedFile.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setUploadedFile(null)}
+                      className="text-red-400 hover:text-red-300"
+                      title="Remove file"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                
                 {files.map((file, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setSelectedFile(file)}
+                    onClick={() => {
+                      setSelectedFile(file);
+                      setUploadedFile(null);
+                    }}
                     className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
-                      selectedFile === file
+                      selectedFile === file && !uploadedFile
                         ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg'
                         : 'bg-secondary hover:bg-blue-500/10 text-foreground'
                     }`}
@@ -284,18 +340,22 @@ print(fibonacci(10))`;
                 ))}
               </div>
               
-              <button
-                className="w-full px-4 py-2 rounded-xl border-2 border-dashed border-border hover:border-blue-500/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground"
-                style={{ fontFamily: 'var(--font-sans)' }}
-              >
+              <label className="w-full px-4 py-2 rounded-xl border-2 border-dashed border-border hover:border-blue-500/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground">
                 <Upload className="w-4 h-4" />
-                Upload File
-              </button>
+                Upload Your File
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".py,.js,.ts,.tsx,.jsx,.java,.cpp,.c,.cs,.go,.rs,.php,.rb,.swift,.kt,.sql,.html,.css,.txt"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
             
             <button
               onClick={handleAnalyze}
-              disabled={!selectedFile || isAnalyzing}
+              disabled={(!selectedFile && !uploadedFile) || isAnalyzing}
               className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 hover:shadow-xl transition-shadow"
               style={{ fontFamily: 'var(--font-sans)', fontWeight: 500 }}
             >
