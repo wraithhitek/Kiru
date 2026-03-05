@@ -2,12 +2,22 @@ import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
 import { FileText, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SimplifyDocs() {
   const [docUrl, setDocUrl] = useState('');
   const [simplified, setSimplified] = useState('');
   const [isSimplifying, setIsSimplifying] = useState(false);
+  
+  // Listen for voice input from accessibility panel
+  useEffect(() => {
+    const handleVoiceInput = (event: any) => {
+      setDocUrl(event.detail);
+    };
+    
+    window.addEventListener('voiceInput', handleVoiceInput);
+    return () => window.removeEventListener('voiceInput', handleVoiceInput);
+  }, []);
   
   const handleSimplify = async () => {
     if (!docUrl.trim()) return;

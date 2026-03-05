@@ -2,13 +2,23 @@ import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
 import { FolderPlus, Sparkles, Folder, FileCode } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ProjectGenerator() {
   const [projectType, setProjectType] = useState('');
   const [description, setDescription] = useState('');
   const [project, setProject] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Listen for voice input from accessibility panel
+  useEffect(() => {
+    const handleVoiceInput = (event: any) => {
+      setDescription(event.detail);
+    };
+    
+    window.addEventListener('voiceInput', handleVoiceInput);
+    return () => window.removeEventListener('voiceInput', handleVoiceInput);
+  }, []);
   
   const projectTypes = [
     { id: 'web', name: 'Web Application', icon: '🌐' },

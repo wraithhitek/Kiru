@@ -145,7 +145,9 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h4 className="text-sm font-semibold">Voice Input</h4>
-                <p className="text-xs text-muted-foreground">Ask questions using your voice</p>
+                <p className="text-xs text-muted-foreground">
+                  Speak to fill input fields on any page
+                </p>
               </div>
             </div>
             
@@ -165,7 +167,7 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
               ) : (
                 <>
                   <Mic className="w-5 h-5" />
-                  Click to speak your question
+                  Click to speak
                 </>
               )}
             </button>
@@ -177,8 +179,17 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
                 className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
               >
                 <p className="text-sm text-blue-400">You said: "{voiceInput}"</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Input sent to active field
+                </p>
               </motion.div>
             )}
+            
+            <div className="mt-3 p-2 bg-secondary/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                💡 Works in: AI Tutor, Project Generator, Debug Error, Simplify Docs, Quiz Master
+              </p>
+            </div>
           </div>
 
           {/* Text-to-Speech Section */}

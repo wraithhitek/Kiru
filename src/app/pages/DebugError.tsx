@@ -3,13 +3,23 @@ import { FormattedText } from "../components/FormattedText";
 import { CodeEditor } from "../components/CodeEditor";
 import { Bug, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DebugError() {
   const [errorMessage, setErrorMessage] = useState('');
   const [code, setCode] = useState('');
   const [solution, setSolution] = useState<any>(null);
   const [isDebugging, setIsDebugging] = useState(false);
+  
+  // Listen for voice input from accessibility panel
+  useEffect(() => {
+    const handleVoiceInput = (event: any) => {
+      setErrorMessage(event.detail);
+    };
+    
+    window.addEventListener('voiceInput', handleVoiceInput);
+    return () => window.removeEventListener('voiceInput', handleVoiceInput);
+  }, []);
   
   const exampleError = `TypeError: 'int' object is not subscriptable`;
   const exampleCode = `numbers = [1, 2, 3, 4, 5]

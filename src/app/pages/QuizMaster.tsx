@@ -1,7 +1,7 @@
 import { FeatureLayout } from "../components/FeatureLayout";
 import { Award, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Question {
   question: string;
@@ -21,6 +21,21 @@ export default function QuizMaster() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [quizStartTime, setQuizStartTime] = useState<number>(0);
+  
+  // Listen for voice input from accessibility panel (for topic)
+  useEffect(() => {
+    const handleVoiceInput = (event: any) => {
+      // Try to match voice input to a topic
+      const input = event.detail.toLowerCase();
+      if (input.includes('python')) setTopic('python-basics');
+      else if (input.includes('web')) setTopic('web-dev');
+      else if (input.includes('algorithm')) setTopic('algorithms');
+      else if (input.includes('database')) setTopic('databases');
+    };
+    
+    window.addEventListener('voiceInput', handleVoiceInput);
+    return () => window.removeEventListener('voiceInput', handleVoiceInput);
+  }, []);
   
   const topics = [
     { id: 'python-basics', name: 'Python Basics', icon: '🐍' },
