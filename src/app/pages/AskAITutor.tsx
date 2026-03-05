@@ -2,7 +2,7 @@ import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
 import { MessageCircle, Send, Trash2, Save } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AskAITutor() {
   const [messages, setMessages] = useState([
@@ -10,6 +10,16 @@ export default function AskAITutor() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Listen for voice input from accessibility panel
+  useEffect(() => {
+    const handleVoiceInput = (event: any) => {
+      setInput(event.detail);
+    };
+    
+    window.addEventListener('voiceInput', handleVoiceInput);
+    return () => window.removeEventListener('voiceInput', handleVoiceInput);
+  }, []);
   
   const exampleQuestions = [
     "What is a function in Python?",

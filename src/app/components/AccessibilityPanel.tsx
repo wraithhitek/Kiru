@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Accessibility, Mic, MicOff, X, Volume2, VolumeX, Type, Maximize2, Minimize2 } from 'lucide-react';
+import { Accessibility, Mic, MicOff, X, Volume2, VolumeX, Type, Maximize2, Minimize2, Eye } from 'lucide-react';
 
 interface AccessibilityPanelProps {
   isOpen: boolean;
@@ -9,12 +9,22 @@ interface AccessibilityPanelProps {
 
 export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, onClose }) => {
   const [isListening, setIsListening] = useState(false);
-  const [captions, setCaptions] = useState<string[]>([]);
-  const [currentCaption, setCurrentCaption] = useState('');
+  const [voiceInput, setVoiceInput] = useState('');
   const [fontSize, setFontSize] = useState(16);
+  const [highContrast, setHighContrast] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAvatar, setShowAvatar] = useState(true);
+  const [textToSpeech, setTextToSpeech] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Apply high contrast mode
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [highContrast]);
 
   useEffect(() => {
     // Check if browser supports Speech Recognition
@@ -22,45 +32,27 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
     
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        if (finalTranscript) {
-          setCaptions(prev => [...prev.slice(-4), finalTranscript.trim()]);
-          setCurrentCaption('');
-        } else {
-          setCurrentCaption(interimTranscript);
-        }
+        const transcript = event.results[0][0].transcript;
+        setVoiceInput(transcript);
+        
+        // Dispatch custom event with voice input
+        window.dispatchEvent(new CustomEvent('voiceInput', { detail: transcript }));
+        
+        setIsListening(false);
       };
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'no-speech') {
-          // Restart if no speech detected
-          if (isListening) {
-            recognitionRef.current?.start();
-          }
-        }
+        setIsListening(false);
       };
 
       recognitionRef.current.onend = () => {
-        if (isListening) {
-          recognitionRef.current?.start();
-        }
+        setIsListening(false);
       };
     }
 
@@ -69,7 +61,7 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
         recognitionRef.current.stop();
       }
     };
-  }, [isListening]);
+  }, []);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
@@ -83,12 +75,19 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
     } else {
       recognitionRef.current.start();
       setIsListening(true);
+      setVoiceInput('');
     }
   };
 
-  const clearCaptions = () => {
-    setCaptions([]);
-    setCurrentCaption('');
+  const toggleTextToSpeech = () => {
+    setTextToSpeech(!textToSpeech);
+    // Dispatch event to enable/disable TTS globally
+    window.dispatchEvent(new CustomEvent('toggleTTS', { detail: !textToSpeech }));
+  };
+
+  const adjustGlobalFontSize = (size: number) => {
+    setFontSize(size);
+    document.documentElement.style.fontSize = `${size}px`;
   };
 
   if (!isOpen) return null;
@@ -102,14 +101,15 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
         className={`fixed ${isExpanded ? 'inset-4' : 'bottom-4 right-4'} bg-card border-2 border-border rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden`}
         style={{ 
           width: isExpanded ? 'auto' : '400px',
-          height: isExpanded ? 'auto' : '500px'
+          height: isExpanded ? 'auto' : 'auto',
+          maxHeight: isExpanded ? 'none' : '600px'
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/50">
           <div className="flex items-center gap-2">
             <Accessibility className="w-5 h-5 text-blue-400" />
-            <h3 className="font-semibold">Accessibility Features</h3>
+            <h3 className="font-semibold">Accessibility Settings</h3>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -129,12 +129,115 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          {/* Voice Input Section */}
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h4 className="text-sm font-semibold">Voice Input</h4>
+                <p className="text-xs text-muted-foreground">Ask questions using your voice</p>
+              </div>
+            </div>
+            
+            <button
+              onClick={toggleListening}
+              className={`w-full px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                isListening
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                  : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg text-white'
+              }`}
+            >
+              {isListening ? (
+                <>
+                  <MicOff className="w-5 h-5" />
+                  Listening... Click to stop
+                </>
+              ) : (
+                <>
+                  <Mic className="w-5 h-5" />
+                  Click to speak your question
+                </>
+              )}
+            </button>
+
+            {voiceInput && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
+              >
+                <p className="text-sm text-blue-400">You said: "{voiceInput}"</p>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Text-to-Speech Section */}
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold">Text-to-Speech</h4>
+                <p className="text-xs text-muted-foreground">Hear AI responses read aloud</p>
+              </div>
+              <button
+                onClick={toggleTextToSpeech}
+                className={`p-3 rounded-xl transition-all ${
+                  textToSpeech
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-secondary hover:bg-secondary/80'
+                }`}
+              >
+                {textToSpeech ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Visual Settings */}
+          <div className="p-4 border-b border-border">
+            <h4 className="text-sm font-semibold mb-3">Visual Settings</h4>
+            
+            {/* Font Size */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-muted-foreground">Text Size</label>
+                <span className="text-sm font-medium">{fontSize}px</span>
+              </div>
+              <input
+                type="range"
+                min="14"
+                max="20"
+                value={fontSize}
+                onChange={(e) => adjustGlobalFontSize(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            {/* High Contrast */}
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">High Contrast Mode</label>
+                <p className="text-xs text-muted-foreground">Increase text visibility</p>
+              </div>
+              <button
+                onClick={() => setHighContrast(!highContrast)}
+                className={`p-3 rounded-xl transition-all ${
+                  highContrast
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-secondary hover:bg-secondary/80'
+                }`}
+              >
+                <Eye className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
           {/* Sign Language Avatar Section */}
           {showAvatar && (
-            <div className="p-4 border-b border-border bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+            <div className="p-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold">Sign Language Avatar</h4>
+                <div>
+                  <h4 className="text-sm font-semibold">Sign Language Avatar</h4>
+                  <p className="text-xs text-muted-foreground">Coming soon</p>
+                </div>
                 <button
                   onClick={() => setShowAvatar(false)}
                   className="text-xs text-muted-foreground hover:text-foreground"
@@ -144,108 +247,25 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
               </div>
               <div className="aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-border">
                 <div className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                    <Accessibility className="w-12 h-12 text-white" />
+                  <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                    <Accessibility className="w-10 h-10 text-white" />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Sign language avatar will appear here
+                    Sign language translation
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    (Feature in development)
+                    Feature in development
                   </p>
                 </div>
               </div>
             </div>
           )}
-
-          {/* Live Captions Section */}
-          <div className="flex-1 flex flex-col p-4 overflow-hidden">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold">Live Captions</h4>
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-muted-foreground">Size:</label>
-                <input
-                  type="range"
-                  min="12"
-                  max="24"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="w-20"
-                />
-                <span className="text-xs text-muted-foreground w-8">{fontSize}px</span>
-              </div>
-            </div>
-
-            {/* Captions Display */}
-            <div 
-              className="flex-1 bg-black/40 rounded-xl p-4 overflow-y-auto mb-3 border border-border"
-              style={{ fontSize: `${fontSize}px` }}
-            >
-              {captions.length === 0 && !currentCaption && (
-                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                  {isListening ? 'Listening for speech...' : 'Click the microphone to start live captions'}
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                {captions.map((caption, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-foreground leading-relaxed"
-                  >
-                    {caption}
-                  </motion.div>
-                ))}
-                {currentCaption && (
-                  <div className="text-blue-400 leading-relaxed italic">
-                    {currentCaption}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleListening}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                  isListening
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg text-white'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-5 h-5" />
-                    Stop Listening
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-5 h-5" />
-                    Start Listening
-                  </>
-                )}
-              </button>
-              
-              {captions.length > 0 && (
-                <button
-                  onClick={clearCaptions}
-                  className="px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors"
-                  title="Clear captions"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Footer Info */}
         <div className="p-3 border-t border-border bg-secondary/30">
           <p className="text-xs text-muted-foreground text-center">
-            💡 Tip: Use Chrome or Edge for best speech recognition results
+            💡 Voice input works best in Chrome or Edge browsers
           </p>
         </div>
       </motion.div>
