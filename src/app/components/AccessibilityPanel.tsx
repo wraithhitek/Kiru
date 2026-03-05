@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Accessibility, Mic, MicOff, X, Volume2, VolumeX, Type, Maximize2, Minimize2, Eye } from 'lucide-react';
+import { ttsManager } from '../utils/textToSpeech';
 
 interface AccessibilityPanelProps {
   isOpen: boolean;
@@ -80,9 +81,18 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({ isOpen, 
   };
 
   const toggleTextToSpeech = () => {
-    setTextToSpeech(!textToSpeech);
-    // Dispatch event to enable/disable TTS globally
-    window.dispatchEvent(new CustomEvent('toggleTTS', { detail: !textToSpeech }));
+    const newState = !textToSpeech;
+    setTextToSpeech(newState);
+    
+    if (newState) {
+      ttsManager.enable();
+      ttsManager.speak('Text to speech enabled. Click on any text to hear it read aloud.');
+    } else {
+      ttsManager.disable();
+    }
+    
+    // Dispatch event to notify all components
+    window.dispatchEvent(new CustomEvent('toggleTTS', { detail: newState }));
   };
 
   const adjustGlobalFontSize = (size: number) => {
