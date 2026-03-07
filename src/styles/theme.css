@@ -149,6 +149,63 @@
     font-size: var(--font-size);
   }
 
+  /* High Contrast Mode */
+  .high-contrast {
+    --background: #000000;
+    --foreground: #FFFFFF;
+    --card: #000000;
+    --card-foreground: #FFFFFF;
+    --popover: #000000;
+    --popover-foreground: #FFFFFF;
+    --primary: #FFFFFF;
+    --primary-foreground: #000000;
+    --secondary: #000000;
+    --secondary-foreground: #FFFFFF;
+    --muted: #1A1A1A;
+    --muted-foreground: #FFFFFF;
+    --accent: #000000;
+    --accent-foreground: #FFFFFF;
+    --border: #FFFFFF;
+    --input-background: #000000;
+    --switch-background: #1A1A1A;
+  }
+
+  .high-contrast * {
+    border-color: #FFFFFF !important;
+  }
+
+  .high-contrast body,
+  .high-contrast p,
+  .high-contrast span,
+  .high-contrast div,
+  .high-contrast h1,
+  .high-contrast h2,
+  .high-contrast h3,
+  .high-contrast h4,
+  .high-contrast h5,
+  .high-contrast h6,
+  .high-contrast label,
+  .high-contrast button {
+    color: #FFFFFF !important;
+  }
+
+  .high-contrast input,
+  .high-contrast textarea {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #FFFFFF !important;
+  }
+
+  .high-contrast button {
+    border: 2px solid #FFFFFF !important;
+  }
+
+  .high-contrast .bg-card,
+  .high-contrast .bg-secondary,
+  .high-contrast .bg-popover {
+    background-color: #000000 !important;
+  }
+
   h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
