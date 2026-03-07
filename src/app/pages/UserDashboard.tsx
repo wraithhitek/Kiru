@@ -1,6 +1,6 @@
 import { Navigation } from "../components/Navigation";
 import { motion } from "motion/react";
-import { MessageCircle, Code2, Bug, FileText, FolderPlus, Award, TrendingUp, Target, Calendar, Flame } from "lucide-react";
+import { MessageCircle, Code2, Bug, FileText, FolderPlus, Award, TrendingUp, Target, Calendar, Flame, BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 
@@ -473,6 +473,8 @@ export default function UserDashboard() {
               <h3 className="text-lg font-semibold mb-4">More Tools</h3>
               <div className="space-y-2">
                 {[
+                  { icon: <Target className="w-4 h-4" />, label: "Learning Path", to: "/learning-path" },
+                  { icon: <BookOpen className="w-4 h-4" />, label: "Code Snippets", to: "/code-snippets" },
                   { icon: <FolderPlus className="w-4 h-4" />, label: "Project Generator", to: "/project-generator" },
                   { icon: <Award className="w-4 h-4" />, label: "Quiz Master", to: "/quiz-master" }
                 ].map((tool, index) => (

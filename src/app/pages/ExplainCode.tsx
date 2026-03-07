@@ -5,6 +5,7 @@ import { Code2, Sparkles, FileCode, Upload } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useRef } from "react";
 import { ProgressTracker } from "../utils/progressTracker";
+import { CodeSnippetManager } from "../utils/codeSnippetManager";
 
 export default function ExplainCode() {
   const [activeTab, setActiveTab] = useState<'snippet' | 'file'>('snippet');
@@ -82,6 +83,9 @@ print(fibonacci(10))`;
           language: language,
           duration: 3 
         });
+        
+        // Auto-save code snippet
+        CodeSnippetManager.autoSaveFromAI(code, data.explanation, 'code_explainer', language);
         
         // Save code snippet to database
         await saveCodeSnippet(code, data.explanation, 'code_explainer');

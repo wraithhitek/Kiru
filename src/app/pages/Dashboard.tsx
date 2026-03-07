@@ -1,6 +1,6 @@
 import { Navigation } from "../components/Navigation";
 import { motion } from "motion/react";
-import { Sparkles, Code2, Zap, Globe, MessageCircle, Bug, FileText, FolderPlus, Award } from "lucide-react";
+import { Sparkles, Code2, Zap, Globe, MessageCircle, Bug, FileText, FolderPlus, Award, Target, BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
 export default function Dashboard() {
@@ -103,6 +103,20 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-6 mb-12">
             {[
               {
+                icon: <Target className="w-8 h-8" />,
+                title: "Learning Path",
+                description: "Track your progress with personalized roadmaps and daily goals",
+                to: "/learning-path",
+                gradient: "from-emerald-500 to-teal-500"
+              },
+              {
+                icon: <BookOpen className="w-8 h-8" />,
+                title: "Code Snippets",
+                description: "Your personal code knowledge base with smart organization",
+                to: "/code-snippets",
+                gradient: "from-purple-500 to-pink-500"
+              },
+              {
                 icon: <MessageCircle className="w-8 h-8" />,
                 title: "Ask AI Tutor",
                 description: "Get instant help with programming concepts using the Socratic method",
@@ -114,7 +128,7 @@ export default function Dashboard() {
                 title: "Code Explainer",
                 description: "Understand code snippets and analyze entire files with AI-powered explanations",
                 to: "/explain-code",
-                gradient: "from-blue-500 to-purple-500"
+                gradient: "from-blue-500 to-cyan-500"
               },
               {
                 icon: <Bug className="w-8 h-8" />,
@@ -128,14 +142,14 @@ export default function Dashboard() {
                 title: "Simplify Docs",
                 description: "Break down complex documentation into digestible content",
                 to: "/simplify-docs",
-                gradient: "from-purple-500 to-pink-500"
+                gradient: "from-indigo-500 to-purple-500"
               },
               {
                 icon: <FolderPlus className="w-8 h-8" />,
                 title: "Project Generator",
                 description: "Generate complete project structures with best practices",
                 to: "/project-generator",
-                gradient: "from-emerald-500 to-teal-500"
+                gradient: "from-cyan-500 to-blue-500"
               },
               {
                 icon: <Award className="w-8 h-8" />,

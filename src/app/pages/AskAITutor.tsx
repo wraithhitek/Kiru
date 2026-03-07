@@ -4,6 +4,7 @@ import { MessageCircle, Send, Trash2, Save } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 import { ProgressTracker } from "../utils/progressTracker";
+import { CodeSnippetManager } from "../utils/codeSnippetManager";
 
 export default function AskAITutor() {
   const [messages, setMessages] = useState([
@@ -87,6 +88,24 @@ export default function AskAITutor() {
           language: language,
           duration: 5 
         });
+        
+        // Auto-save as snippet if response contains code
+        const codeMatch = data.answer.match(/```[\s\S]*?```/g);
+        if (codeMatch && codeMatch.length > 0) {
+          // Extract code from markdown code blocks
+          const codeContent = codeMatch.map(block => 
+            block.replace(/```\w*\n?/, '').replace(/```$/, '')
+          ).join('\n\n');
+          
+          if (codeContent.trim().length > 20) {
+            CodeSnippetManager.autoSaveFromAI(
+              codeContent.trim(), 
+              data.answer, 
+              'ai_tutor', 
+              language
+            );
+          }
+        }
       }
     } catch (error) {
       console.error('Error:', error);

@@ -5,6 +5,7 @@ import { Bug, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 import { ProgressTracker } from "../utils/progressTracker";
+import { CodeSnippetManager } from "../utils/codeSnippetManager";
 
 export default function DebugError() {
   const [errorMessage, setErrorMessage] = useState('');
@@ -75,8 +76,9 @@ print(value)`;
           duration: 4 
         });
         
-        // Save code snippet to database if code was provided
+        // Auto-save code snippet if code was provided
         if (code.trim()) {
+          CodeSnippetManager.autoSaveFromAI(code, data.solution, 'debug_error', language);
           await saveCodeSnippet(code, data.solution, 'debug_error');
         }
       }

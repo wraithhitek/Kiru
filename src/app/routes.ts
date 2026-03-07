@@ -11,6 +11,7 @@ import SimplifyDocs from "./pages/SimplifyDocs";
 import ProjectGenerator from "./pages/ProjectGenerator";
 import QuizMaster from "./pages/QuizMaster";
 import LearningPath from "./pages/LearningPath";
+import CodeSnippets from "./pages/CodeSnippets";
 
 export const router = createBrowserRouter([
   {
@@ -60,5 +61,9 @@ export const router = createBrowserRouter([
   {
     path: "/learning-path",
     Component: LearningPath,
+  },
+  {
+    path: "/code-snippets",
+    Component: CodeSnippets,
   },
 ]);
