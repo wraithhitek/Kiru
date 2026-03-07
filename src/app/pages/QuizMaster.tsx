@@ -2,6 +2,7 @@ import { FeatureLayout } from "../components/FeatureLayout";
 import { Award, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
+import { ProgressTracker } from "../utils/progressTracker";
 
 interface Question {
   question: string;
@@ -148,7 +149,16 @@ export default function QuizMaster() {
       setSelectedAnswer(null);
       setShowExplanation(false);
     } else {
-      // Quiz completed - save score
+      // Quiz completed - save score and track progress
+      const finalScore = Math.round((score / questions.length) * 100);
+      
+      // Track activity for progress
+      ProgressTracker.trackActivity('quiz_completed', { 
+        topic: topic,
+        score: finalScore,
+        duration: 10 
+      });
+      
       await saveQuizScore();
       setQuizStarted(false);
     }

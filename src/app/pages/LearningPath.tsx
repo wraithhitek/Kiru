@@ -15,77 +15,38 @@ import {
 } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
-
-interface LearningGoal {
-  id: string;
-  title: string;
-  target: number;
-  current: number;
-  unit: string;
-  period: 'daily' | 'weekly';
-}
-
-interface Topic {
-  id: string;
-  name: string;
-  category: string;
-  progress: number;
-  totalLessons: number;
-  completedLessons: number;
-  status: 'locked' | 'in-progress' | 'completed';
-}
-
-interface LearningPath {
-  id: string;
-  name: string;
-  level: string;
-  topics: Topic[];
-}
+import { ProgressTracker, LearningGoal, LearningPath } from '../utils/progressTracker';
 
 export default function LearningPath() {
-  const [streak, setStreak] = useState(7);
-  const [goals, setGoals] = useState<LearningGoal[]>([
-    { id: '1', title: 'Study Time', target: 30, current: 22, unit: 'minutes', period: 'daily' },
-    { id: '2', title: 'Complete Lessons', target: 3, current: 2, unit: 'lessons', period: 'daily' },
-    { id: '3', title: 'Practice Problems', target: 20, current: 15, unit: 'problems', period: 'weekly' }
-  ]);
-  
-  const [learningPaths] = useState<LearningPath[]>([
-    {
-      id: 'beginner-js',
-      name: 'JavaScript Fundamentals',
-      level: 'Beginner',
-      topics: [
-        { id: '1', name: 'Variables & Data Types', category: 'Basics', progress: 100, totalLessons: 5, completedLessons: 5, status: 'completed' },
-        { id: '2', name: 'Functions & Scope', category: 'Basics', progress: 60, totalLessons: 6, completedLessons: 3, status: 'in-progress' },
-        { id: '3', name: 'Arrays & Objects', category: 'Basics', progress: 0, totalLessons: 7, completedLessons: 0, status: 'locked' },
-        { id: '4', name: 'DOM Manipulation', category: 'Intermediate', progress: 0, totalLessons: 8, completedLessons: 0, status: 'locked' },
-        { id: '5', name: 'Async JavaScript', category: 'Intermediate', progress: 0, totalLessons: 6, completedLessons: 0, status: 'locked' }
-      ]
-    },
-    {
-      id: 'react-basics',
-      name: 'React Development',
-      level: 'Intermediate',
-      topics: [
-        { id: '1', name: 'Components & Props', category: 'Basics', progress: 0, totalLessons: 5, completedLessons: 0, status: 'in-progress' },
-        { id: '2', name: 'State & Hooks', category: 'Basics', progress: 0, totalLessons: 7, completedLessons: 0, status: 'locked' },
-        { id: '3', name: 'Routing', category: 'Intermediate', progress: 0, totalLessons: 4, completedLessons: 0, status: 'locked' }
-      ]
-    },
-    {
-      id: 'python-basics',
-      name: 'Python Programming',
-      level: 'Beginner',
-      topics: [
-        { id: '1', name: 'Python Syntax', category: 'Basics', progress: 0, totalLessons: 5, completedLessons: 0, status: 'in-progress' },
-        { id: '2', name: 'Data Structures', category: 'Basics', progress: 0, totalLessons: 6, completedLessons: 0, status: 'locked' },
-        { id: '3', name: 'OOP in Python', category: 'Intermediate', progress: 0, totalLessons: 7, completedLessons: 0, status: 'locked' }
-      ]
-    }
-  ]);
+  const [streak, setStreak] = useState(0);
+  const [goals, setGoals] = useState<LearningGoal[]>([]);
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+  const [selectedPath, setSelectedPath] = useState('');
 
-  const [selectedPath, setSelectedPath] = useState('beginner-js');
+  useEffect(() => {
+    // Load data from ProgressTracker
+    loadData();
+
+    // Listen for progress updates
+    const handleProgressUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('progressUpdated', handleProgressUpdate);
+    return () => window.removeEventListener('progressUpdated', handleProgressUpdate);
+  }, []);
+
+  const loadData = () => {
+    setStreak(ProgressTracker.getStreak());
+    setGoals(ProgressTracker.getGoals());
+    setLearningPaths(ProgressTracker.getLearningPaths());
+    setSelectedPath(ProgressTracker.getSelectedPath());
+  };
+
+  const handlePathChange = (pathId: string) => {
+    setSelectedPath(pathId);
+    ProgressTracker.setSelectedPath(pathId);
+  };
 
   const currentPath = learningPaths.find(p => p.id === selectedPath);
   const overallProgress = currentPath 
@@ -174,7 +135,7 @@ export default function LearningPath() {
                 key={path.id}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedPath(path.id)}
+                onClick={() => handlePathChange(path.id)}
                 className={`p-4 rounded-lg border-2 text-left transition-all ${
                   selectedPath === path.id
                     ? 'border-blue-500 bg-blue-500/10'
@@ -258,6 +219,29 @@ export default function LearningPath() {
             </div>
           </Card>
         )}
+
+        {/* Activity Tips */}
+        <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-purple-500/5 border-blue-500/20">
+          <h3 className="text-lg font-semibold mb-3">💡 How to Progress</h3>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="font-medium text-blue-400 mb-1">Study Time Goal:</p>
+              <p className="text-muted-foreground">Use AI Tutor, Code Explainer, or Simplify Docs</p>
+            </div>
+            <div>
+              <p className="font-medium text-emerald-400 mb-1">Complete Lessons:</p>
+              <p className="text-muted-foreground">Take quizzes and score 70%+ to count as lessons</p>
+            </div>
+            <div>
+              <p className="font-medium text-orange-400 mb-1">Practice Problems:</p>
+              <p className="text-muted-foreground">Debug errors or generate projects</p>
+            </div>
+            <div>
+              <p className="font-medium text-purple-400 mb-1">Topic Progress:</p>
+              <p className="text-muted-foreground">Activities automatically update relevant topics</p>
+            </div>
+          </div>
+        </Card>
       </div>
     </FeatureLayout>
   );

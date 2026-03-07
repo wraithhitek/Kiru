@@ -4,12 +4,22 @@ import { CodeEditor } from "../components/CodeEditor";
 import { Bug, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
+import { ProgressTracker } from "../utils/progressTracker";
 
 export default function DebugError() {
   const [errorMessage, setErrorMessage] = useState('');
   const [code, setCode] = useState('');
   const [solution, setSolution] = useState<any>(null);
   const [isDebugging, setIsDebugging] = useState(false);
+  
+  const detectLanguageFromCode = (code: string): string => {
+    if (code.includes('def ') || code.includes('import ') || code.includes('print(')) return 'python';
+    if (code.includes('function ') || code.includes('const ') || code.includes('let ')) return 'javascript';
+    if (code.includes('React') || code.includes('useState') || code.includes('useEffect')) return 'react';
+    if (code.includes('public class') || code.includes('System.out')) return 'java';
+    if (code.includes('#include') || code.includes('cout')) return 'cpp';
+    return 'general';
+  };
   
   // Listen for voice input from accessibility panel
   useEffect(() => {
@@ -56,6 +66,13 @@ print(value)`;
           explanation: '',
           fix: '',
           correctedCode: ''
+        });
+        
+        // Track activity for progress
+        const language = detectLanguageFromCode(code);
+        ProgressTracker.trackActivity('debug_error', { 
+          language: language,
+          duration: 4 
         });
         
         // Save code snippet to database if code was provided

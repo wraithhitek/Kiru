@@ -3,6 +3,7 @@ import { FormattedText } from "../components/FormattedText";
 import { MessageCircle, Send, Trash2, Save } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
+import { ProgressTracker } from "../utils/progressTracker";
 
 export default function AskAITutor() {
   const [messages, setMessages] = useState([
@@ -27,6 +28,18 @@ export default function AskAITutor() {
     "Explain list comprehension",
     "What is object-oriented programming?"
   ];
+  
+  const detectLanguageFromQuestion = (question: string): string => {
+    const lowerQuestion = question.toLowerCase();
+    if (lowerQuestion.includes('python') || lowerQuestion.includes('py')) return 'python';
+    if (lowerQuestion.includes('javascript') || lowerQuestion.includes('js')) return 'javascript';
+    if (lowerQuestion.includes('react')) return 'react';
+    if (lowerQuestion.includes('html')) return 'html';
+    if (lowerQuestion.includes('css')) return 'css';
+    if (lowerQuestion.includes('java') && !lowerQuestion.includes('javascript')) return 'java';
+    if (lowerQuestion.includes('c++') || lowerQuestion.includes('cpp')) return 'cpp';
+    return 'general';
+  };
   
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -66,6 +79,14 @@ export default function AskAITutor() {
           role: 'assistant', 
           content: data.answer 
         }]);
+        
+        // Track activity for progress - detect language from question
+        const language = detectLanguageFromQuestion(userMessage);
+        ProgressTracker.trackActivity('ai_tutor', { 
+          topic: userMessage.substring(0, 50),
+          language: language,
+          duration: 5 
+        });
       }
     } catch (error) {
       console.error('Error:', error);

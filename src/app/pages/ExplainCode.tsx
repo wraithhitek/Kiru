@@ -4,6 +4,7 @@ import { CodeEditor } from "../components/CodeEditor";
 import { Code2, Sparkles, FileCode, Upload } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useRef } from "react";
+import { ProgressTracker } from "../utils/progressTracker";
 
 export default function ExplainCode() {
   const [activeTab, setActiveTab] = useState<'snippet' | 'file'>('snippet');
@@ -19,6 +20,17 @@ export default function ExplainCode() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const detectLanguageFromCode = (code: string): string => {
+    if (code.includes('def ') || code.includes('import ') || code.includes('print(')) return 'python';
+    if (code.includes('function ') || code.includes('const ') || code.includes('let ')) return 'javascript';
+    if (code.includes('React') || code.includes('useState') || code.includes('useEffect')) return 'react';
+    if (code.includes('public class') || code.includes('System.out')) return 'java';
+    if (code.includes('#include') || code.includes('cout')) return 'cpp';
+    if (code.includes('<html>') || code.includes('<div>')) return 'html';
+    if (code.includes('display:') || code.includes('color:')) return 'css';
+    return 'general';
+  };
   
   const exampleCode = `def fibonacci(n):
     if n <= 1:
@@ -63,6 +75,13 @@ print(fibonacci(10))`;
         setExplanation('Error: ' + data.error);
       } else {
         setExplanation(data.explanation);
+        
+        // Track activity for progress
+        const language = detectLanguageFromCode(code);
+        ProgressTracker.trackActivity('code_explainer', { 
+          language: language,
+          duration: 3 
+        });
         
         // Save code snippet to database
         await saveCodeSnippet(code, data.explanation, 'code_explainer');
