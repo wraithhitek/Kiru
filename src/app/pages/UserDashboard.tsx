@@ -1,6 +1,6 @@
 import { Navigation } from "../components/Navigation";
 import { motion } from "motion/react";
-import { MessageCircle, Code2, Bug, FileText, FolderPlus, Award, TrendingUp, Target, Calendar, Flame, BookOpen } from "lucide-react";
+import { MessageCircle, Code2, Bug, FileText, FolderPlus, Award, TrendingUp, Target, Calendar, Flame, BookOpen, Play } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 
@@ -96,18 +96,18 @@ export default function UserDashboard() {
       gradient: "from-blue-500 to-purple-500"
     },
     {
+      icon: <Play className="w-8 h-8 text-white" strokeWidth={1.5} />,
+      title: "Practice Playground",
+      description: "Code & practice",
+      to: "/practice-playground",
+      gradient: "from-green-500 to-emerald-500"
+    },
+    {
       icon: <Bug className="w-8 h-8 text-white" strokeWidth={1.5} />,
       title: "Debug Error",
       description: "Fix problems",
       to: "/debug-error",
       gradient: "from-orange-500 to-red-500"
-    },
-    {
-      icon: <FileText className="w-8 h-8 text-white" strokeWidth={1.5} />,
-      title: "Simplify Docs",
-      description: "Break down docs",
-      to: "/simplify-docs",
-      gradient: "from-purple-500 to-pink-500"
     }
   ];
 
@@ -475,6 +475,7 @@ export default function UserDashboard() {
                 {[
                   { icon: <Target className="w-4 h-4" />, label: "Learning Path", to: "/learning-path" },
                   { icon: <BookOpen className="w-4 h-4" />, label: "Code Snippets", to: "/code-snippets" },
+                  { icon: <Play className="w-4 h-4" />, label: "Practice Playground", to: "/practice-playground" },
                   { icon: <FolderPlus className="w-4 h-4" />, label: "Project Generator", to: "/project-generator" },
                   { icon: <Award className="w-4 h-4" />, label: "Quiz Master", to: "/quiz-master" }
                 ].map((tool, index) => (

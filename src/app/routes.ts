@@ -12,6 +12,7 @@ import ProjectGenerator from "./pages/ProjectGenerator";
 import QuizMaster from "./pages/QuizMaster";
 import LearningPath from "./pages/LearningPath";
 import CodeSnippets from "./pages/CodeSnippets";
+import PracticePlayground from "./pages/PracticePlayground";
 
 export const router = createBrowserRouter([
   {
@@ -65,5 +66,9 @@ export const router = createBrowserRouter([
   {
     path: "/code-snippets",
     Component: CodeSnippets,
+  },
+  {
+    path: "/practice-playground",
+    Component: PracticePlayground,
   },
 ]);

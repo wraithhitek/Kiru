@@ -1,6 +1,6 @@
 import { Navigation } from "../components/Navigation";
 import { motion } from "motion/react";
-import { Sparkles, Code2, Zap, Globe, MessageCircle, Bug, FileText, FolderPlus, Award, Target, BookOpen } from "lucide-react";
+import { Sparkles, Code2, Zap, Globe, MessageCircle, Bug, FileText, FolderPlus, Award, Target, BookOpen, Play } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
 export default function Dashboard() {
@@ -115,6 +115,13 @@ export default function Dashboard() {
                 description: "Your personal code knowledge base with smart organization",
                 to: "/code-snippets",
                 gradient: "from-purple-500 to-pink-500"
+              },
+              {
+                icon: <Play className="w-8 h-8" />,
+                title: "Practice Playground",
+                description: "Code, run, and challenge yourself in a live environment",
+                to: "/practice-playground",
+                gradient: "from-green-500 to-emerald-500"
               },
               {
                 icon: <MessageCircle className="w-8 h-8" />,
