@@ -15,12 +15,12 @@ import {
 } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
-import { ProgressTracker, LearningGoal, LearningPath } from '../utils/progressTracker';
+import { ProgressTracker, LearningGoal, LearningPath as LearningPathType } from '../utils/progressTracker';
 
 export default function LearningPath() {
   const [streak, setStreak] = useState(0);
   const [goals, setGoals] = useState<LearningGoal[]>([]);
-  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+  const [learningPaths, setLearningPaths] = useState<LearningPathType[]>([]);
   const [selectedPath, setSelectedPath] = useState('');
 
   useEffect(() => {

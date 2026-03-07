@@ -1,109 +1,144 @@
-# Kiru AI - India's AI Learning Platform
+# 🎓 Kiru Frontend - React Application
 
-An AI-powered learning platform designed for developers to master programming through interactive features like AI tutoring, code explanation, debugging assistance, and more.
+## 🌟 **Features**
+- **AI Tutor** - Interactive learning with Socratic method
+- **Code Explainer** - Detailed code analysis
+- **Debug Assistant** - Smart error solutions
+- **Quiz Master** - Dynamic quiz generation
+- **Learning Paths** - Structured courses with progress tracking
+- **Code Snippets** - Save and organize code examples
+- **Practice Playground** - Live coding environment
+- **Accessibility** - Full screen reader and keyboard support
 
-## Features
+## 🛠️ **Tech Stack**
+- **React 18** with TypeScript
+- **Vite** for fast development
+- **Tailwind CSS** for styling
+- **Framer Motion** for animations
+- **Lucide React** for icons
 
-- **Ask AI Tutor** - Get instant help with programming concepts using the Socratic method
-- **Code Explainer** - Understand code snippets and analyze entire files with AI-powered explanations
-- **Debug Error** - Fix code problems with intelligent debugging assistance
-- **Simplify Docs** - Break down complex documentation into digestible content
-- **Project Generator** - Generate complete project structures with best practices
-- **Quiz Master** - Test your knowledge with interactive AI-generated quizzes
-- **User Dashboard** - Track your learning journey with personalized progress tracking
+## 🚀 **Development**
 
-## Tech Stack
-
-- **Frontend**: React 18 + TypeScript
-- **Routing**: React Router v7
-- **Styling**: Tailwind CSS 4
-- **Animations**: Motion (Framer Motion)
-- **UI Components**: Radix UI + Custom Components
-- **Build Tool**: Vite 6
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-
-### Installation
-
-1. Install dependencies:
+### **Install Dependencies**
 ```bash
 npm install
 ```
 
-2. Start the development server:
+### **Start Development Server**
 ```bash
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:5173`
-
-### Build for Production
-
+### **Build for Production**
 ```bash
 npm run build
 ```
 
-The production build will be created in the `dist` folder.
+### **Preview Production Build**
+```bash
+npm run preview
+```
 
-## Project Structure
+## 🔧 **Configuration**
 
+### **Environment Variables (.env)**
+```bash
+VITE_API_URL=https://your-api-gateway-url.amazonaws.com
+```
+
+## 📁 **Project Structure**
 ```
 src/
 ├── app/
-│   ├── components/
-│   │   ├── ui/              # Reusable UI components (Radix UI)
+│   ├── components/          # Reusable UI components
+│   │   ├── ui/             # Base UI components (buttons, cards, etc.)
+│   │   ├── AccessibilityButton.tsx
+│   │   ├── AccessibilityPanel.tsx
+│   │   ├── CodeEditor.tsx
 │   │   ├── FeatureLayout.tsx
+│   │   ├── FormattedText.tsx
+│   │   ├── GlobalTTS.tsx
 │   │   ├── KiruLogo.tsx
-│   │   └── Navigation.tsx
-│   ├── pages/
-│   │   ├── Dashboard.tsx    # Landing page
-│   │   ├── UserDashboard.tsx # User-specific dashboard
+│   │   ├── Navigation.tsx
+│   │   ├── ReadableText.tsx
+│   │   └── SignLanguageAvatar.tsx
+│   │
+│   ├── pages/               # Page components
+│   │   ├── AskAITutor.tsx
+│   │   ├── CodeSnippets.tsx
+│   │   ├── Dashboard.tsx
+│   │   ├── DebugError.tsx
+│   │   ├── ExplainCode.tsx
+│   │   ├── ForgotPassword.tsx
+│   │   ├── LearningPath.tsx
+│   │   ├── PracticePlayground.tsx
+│   │   ├── ProjectGenerator.tsx
+│   │   ├── QuizMaster.tsx
 │   │   ├── SignIn.tsx
 │   │   ├── SignUp.tsx
-│   │   └── [feature pages]
-│   ├── App.tsx
-│   └── routes.ts
-├── styles/
-│   ├── theme.css           # Dark theme with blue-orange gradients
+│   │   ├── SimplifyDocs.tsx
+│   │   └── UserDashboard.tsx
+│   │
+│   ├── utils/               # Utility functions
+│   │   ├── codeSnippetManager.ts
+│   │   ├── progressTracker.ts
+│   │   ├── signLanguageService.ts
+│   │   └── textToSpeech.ts
+│   │
+│   ├── routes.ts            # Application routes
+│   └── App.tsx              # Main app component
+│
+├── styles/                  # Global styles
+│   ├── fonts.css
+│   ├── index.css
 │   ├── tailwind.css
-│   └── fonts.css
-└── main.tsx
+│   └── theme.css
+│
+└── main.tsx                 # Entry point
 ```
 
-## Design System
+## 🎨 **Styling**
+- **Tailwind CSS** for utility-first styling
+- **Custom CSS variables** for theming
+- **Responsive design** for all screen sizes
+- **Dark/light mode** support
+- **High contrast** accessibility mode
 
-- **Theme**: Dark mode with Sarvam.ai-inspired aesthetic
-- **Colors**: Blue-orange gradient primary, dark backgrounds (#0A0A0A)
-- **Typography**: System fonts with serif headings
-- **Animations**: Smooth, optimized transitions (reduced motion support)
+## ♿ **Accessibility Features**
+- **ARIA labels** and roles
+- **Keyboard navigation** support
+- **Screen reader** compatibility
+- **High contrast** mode
+- **Text-to-speech** integration
+- **Sign language** support
+- **Focus management**
 
-## Authentication
+## 🔗 **API Integration**
+All API calls go to the backend Lambda functions:
+- `POST /api/ai-tutor` - AI tutoring
+- `POST /api/code-explainer` - Code analysis
+- `POST /api/debug-error` - Error debugging
+- `POST /api/quiz-master` - Quiz generation
+- `POST /api/project-generator` - Project scaffolding
+- `POST /api/simplify-docs` - Documentation simplification
 
-Currently uses localStorage for demo purposes:
-- User data stored in `kiruUser` key
-- Authentication status in `isAuthenticated` key
-- **Note**: This is for demonstration only. Implement proper backend authentication for production.
+## 📱 **Responsive Design**
+- **Mobile-first** approach
+- **Tablet** optimized layouts
+- **Desktop** full-featured experience
+- **Touch-friendly** interactions
 
-## Routes
+## 🧪 **Testing**
+```bash
+# Run tests (when implemented)
+npm run test
+```
 
-- `/` - Landing page
-- `/signin` - Sign in page
-- `/signup` - Sign up page
-- `/dashboard` - User dashboard (protected)
-- `/ask-ai-tutor` - AI Tutor feature
-- `/explain-code` - Code Explainer feature
-- `/debug-error` - Debug Error feature
-- `/simplify-docs` - Simplify Docs feature
-- `/project-generator` - Project Generator feature
-- `/quiz-master` - Quiz Master feature
+## 🚀 **Deployment**
+```bash
+# Build for production
+npm run build
 
-## Development Notes
-
-- All feature pages use mock data/simulated AI responses
-- UI is fully responsive and optimized for performance
-- Animations are GPU-accelerated with reduced-motion support
-- Clean, minimal codebase with no unused dependencies
+# Deploy to your hosting platform
+# (Netlify, Vercel, AWS S3, etc.)
+```

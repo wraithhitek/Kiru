@@ -57,7 +57,7 @@ export default function AskAITutor() {
         content: msg.content
       }));
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai-tutor`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,9 +76,10 @@ export default function AskAITutor() {
           content: 'Sorry, I encountered an error. Please try again.' 
         }]);
       } else {
+        // Simple message handling - no complex enhancements for now
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: data.answer 
+          content: data.answer || 'No response received'
         }]);
         
         // Track activity for progress - detect language from question
@@ -86,24 +87,26 @@ export default function AskAITutor() {
         ProgressTracker.trackActivity('ai_tutor', { 
           topic: userMessage.substring(0, 50),
           language: language,
-          duration: 5 
+          duration: 5
         });
         
         // Auto-save as snippet if response contains code
-        const codeMatch = data.answer.match(/```[\s\S]*?```/g);
-        if (codeMatch && codeMatch.length > 0) {
-          // Extract code from markdown code blocks
-          const codeContent = codeMatch.map(block => 
-            block.replace(/```\w*\n?/, '').replace(/```$/, '')
-          ).join('\n\n');
-          
-          if (codeContent.trim().length > 20) {
-            CodeSnippetManager.autoSaveFromAI(
-              codeContent.trim(), 
-              data.answer, 
-              'ai_tutor', 
-              language
-            );
+        if (data.answer && typeof data.answer === 'string') {
+          const codeMatch = data.answer.match(/```[\s\S]*?```/g);
+          if (codeMatch && codeMatch.length > 0) {
+            // Extract code from markdown code blocks
+            const codeContent = codeMatch.map(block => 
+              block.replace(/```\w*\n?/, '').replace(/```$/, '')
+            ).join('\n\n');
+            
+            if (codeContent.trim().length > 20) {
+              CodeSnippetManager.autoSaveFromAI(
+                codeContent.trim(), 
+                data.answer, 
+                'ai_tutor', 
+                language
+              );
+            }
           }
         }
       }
