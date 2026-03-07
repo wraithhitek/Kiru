@@ -10,6 +10,7 @@ import DebugError from "./pages/DebugError";
 import SimplifyDocs from "./pages/SimplifyDocs";
 import ProjectGenerator from "./pages/ProjectGenerator";
 import QuizMaster from "./pages/QuizMaster";
+import LearningPath from "./pages/LearningPath";
 
 export const router = createBrowserRouter([
   {
@@ -55,5 +56,9 @@ export const router = createBrowserRouter([
   {
     path: "/quiz-master",
     Component: QuizMaster,
+  },
+  {
+    path: "/learning-path",
+    Component: LearningPath,
   },
 ]);
