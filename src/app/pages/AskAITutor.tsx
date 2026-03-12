@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { FeatureLayout } from "../components/FeatureLayout";
 import { FormattedText } from "../components/FormattedText";
 import { MessageCircle, Send, Trash2, Save } from "lucide-react";
@@ -32,7 +33,8 @@ export default function AskAITutor() {
   
   const detectLanguageFromQuestion = (question: string): string => {
     const lowerQuestion = question.toLowerCase();
-    if (lowerQuestion.includes('python') || lowerQuestion.includes('py')) return 'python';
+    // if (lowerQuestion.includes('python') || lowerQuestion.includes('py')) return 'python';
+    if (/\bpython\b|\bpy\b/.test(lowerQuestion)) return 'python';
     if (lowerQuestion.includes('javascript') || lowerQuestion.includes('js')) return 'javascript';
     if (lowerQuestion.includes('react')) return 'react';
     if (lowerQuestion.includes('html')) return 'html';
@@ -51,13 +53,21 @@ export default function AskAITutor() {
     setIsLoading(true);
     
     try {
+      const userMessage = input;
+      setInput('');
+      setIsLoading(true);
+
+      const updatedMessages = [...messages, { role:'user', content:userMessage }]
+      setMessages(updatedMessages)
       // Get conversation history (last 10 messages)
       const conversationHistory = messages.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/`, {
+      console.log('API URL:', `${(import.meta as any).env.VITE_API_URL}/api/ai-tutor`);
+      
+      const response = await fetch(`${(import.meta as any).env.VITE_API_URL}/api/ai-tutor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +105,7 @@ export default function AskAITutor() {
           const codeMatch = data.answer.match(/```[\s\S]*?```/g);
           if (codeMatch && codeMatch.length > 0) {
             // Extract code from markdown code blocks
-            const codeContent = codeMatch.map(block => 
+            const codeContent = codeMatch.map((block: string) => 
               block.replace(/```\w*\n?/, '').replace(/```$/, '')
             ).join('\n\n');
             
@@ -219,7 +229,7 @@ export default function AskAITutor() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask a question..."
               className="flex-1 px-4 py-3 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               style={{ fontFamily: 'var(--font-sans)' }}
