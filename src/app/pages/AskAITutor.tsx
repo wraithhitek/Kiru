@@ -67,6 +67,8 @@ export default function AskAITutor() {
           conversationHistory: conversationHistory
         })
       });
+
+      if(!response) console.log(response);
       
       const data = await response.json();
       
