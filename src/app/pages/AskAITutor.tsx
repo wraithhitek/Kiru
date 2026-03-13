@@ -57,7 +57,8 @@ export default function AskAITutor() {
         content: msg.content
       }));
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/`, {
+      // const response = await fetch(`${import.meta.env.VITE_API_URL}/`, {
+      const response = await fetch(`https://arn:aws:apigateway:ap-southeast-2::/apis/3i7nk6oxt8/routes/j7lx0x7/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
